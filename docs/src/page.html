@@ -2,25 +2,29 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Reem+Kufi:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700&display=swap">
 <style>
 /* Layout: dark green masthead, sticky filter bar, rayon sections of compact checkable rows; step 2 = form + live card preview */
 :root{
-  --paper:#f3f5f1; --card:#ffffff; --ink:#15302b; --muted:#5a6a63; --line:#dbe2da;
-  --accent:#9c5f0c; --accent-soft:#f5e9d4; --sel:#e3eee5; --band:#15302b; --band-fg:#f1ece0; --band-muted:#b9c6bf;
-  --warn:#9b3a2a; --focus:#c98a24;
-  --f-display:"Reem Kufi","Trebuchet MS",system-ui,sans-serif;
-  --f-body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  /* Charte Qayyim (reprise de qayyim.fr) : blanc cassé #fffcf5, doré #e3c996 / #b08d57 / #7b663a, noir, police Raleway */
+  --paper:#fffcf5; --card:#ffffff; --ink:#141414; --muted:#6b6457; --line:#ebe1cb;
+  --accent:#7b663a; --accent-soft:#f7eeda; --sel:#fbf3e1; --gold:#b08d57; --mast:#fffcf5;
+  --band:#111111; --band-fg:#fffcf5; --band-muted:#c9bfa9;
+  --warn:#9b3a2a; --focus:#b08d57;
+  --f-display:"Raleway","Trebuchet MS",system-ui,sans-serif;
+  --f-body:"Raleway",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --r:10px;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --paper:#0e1715; --card:#15211e; --ink:#e3eae5; --muted:#98a8a0; --line:#27362f;
-  --accent:#e3a650; --accent-soft:#2d2415; --sel:#1b2f29; --band:#091210; --band-fg:#efe8d8; --band-muted:#94a69d;
-  --warn:#e8806c; --focus:#e3a650; color-scheme:dark}}
+  --paper:#121110; --card:#1c1a17; --ink:#f5efe2; --muted:#a79e8c; --line:#37322a;
+  --accent:#e3c996; --accent-soft:#2c2618; --sel:#272115; --gold:#e3c996; --mast:#000000;
+  --band:#000000; --band-fg:#fffcf5; --band-muted:#b5ab97;
+  --warn:#e8806c; --focus:#e3c996; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --paper:#0e1715; --card:#15211e; --ink:#e3eae5; --muted:#98a8a0; --line:#27362f;
-  --accent:#e3a650; --accent-soft:#2d2415; --sel:#1b2f29; --band:#091210; --band-fg:#efe8d8; --band-muted:#94a69d;
-  --warn:#e8806c; --focus:#e3a650; color-scheme:dark}
+  --paper:#121110; --card:#1c1a17; --ink:#f5efe2; --muted:#a79e8c; --line:#37322a;
+  --accent:#e3c996; --accent-soft:#2c2618; --sel:#272115; --gold:#e3c996; --mast:#000000;
+  --band:#000000; --band-fg:#fffcf5; --band-muted:#b5ab97;
+  --warn:#e8806c; --focus:#e3c996; color-scheme:dark}
 *{box-sizing:border-box}
 html,body{background:var(--paper)}
 body{color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45}
@@ -31,22 +35,22 @@ button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 14px;cursor:pointer;font-weight:500;font-size:14px;white-space:nowrap}
 .btn:hover{border-color:var(--ink)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.btn.primary{background:var(--gold);border-color:var(--gold);color:#141414;font-weight:700}
 :root[data-theme="dark"] .btn.primary{color:#1b1306}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn.primary{color:#1b1306}}
 .btn.ghost{background:transparent}
 .btn.small{padding:4px 10px;font-size:13px}
 
 /* masthead */
-.mast{background:var(--band);color:var(--band-fg)}
+.mast{background:var(--mast);color:var(--ink);border-bottom:3px solid var(--gold)}
 .mast .wrap{padding-block:26px 22px;display:flex;flex-wrap:wrap;gap:12px 28px;align-items:flex-end;justify-content:space-between}
 .mast h1{font-size:clamp(26px,4vw,38px);line-height:1.1}
-.mast p{margin:6px 0 0;color:var(--band-muted);max-width:62ch}
-.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--band-muted);margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.mast p{margin:6px 0 0;color:var(--muted);max-width:62ch}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--accent);margin-bottom:6px;display:flex;align-items:center;gap:8px}
 .star{width:14px;height:14px;flex:none}
-.steps{display:flex;gap:6px;background:rgba(255,255,255,.07);padding:4px;border-radius:999px}
-.steps button{border:0;background:transparent;color:var(--band-muted);padding:8px 16px;border-radius:999px;cursor:pointer;font-weight:600;font-size:14px}
-.steps button[aria-pressed="true"]{background:var(--band-fg);color:var(--band)}
+.steps{display:flex;gap:6px;background:var(--accent-soft);padding:4px;border-radius:999px}
+.steps button{border:0;background:transparent;color:var(--muted);padding:8px 16px;border-radius:999px;cursor:pointer;font-weight:600;font-size:14px}
+.steps button[aria-pressed="true"]{background:var(--band);color:var(--band-fg)}
 
 /* toolbar */
 .bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);border-bottom:1px solid var(--line)}
@@ -82,7 +86,7 @@ main.wrap{padding-block:18px 120px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,350px),1fr));gap:8px}
 .item{display:grid;grid-template-columns:20px 58px minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:8px 12px 8px 12px;cursor:pointer;transition:border-color .12s,background .12s}
 .item:hover{border-color:var(--muted)}
-.item:has(input:checked){background:var(--sel);border-color:var(--ink)}
+.item:has(input:checked){background:var(--sel);border-color:var(--gold)}
 .item input{width:18px;height:18px;accent-color:var(--ink);margin:0;cursor:pointer}
 .thumb{width:58px;height:58px;border-radius:7px;background:#fff;object-fit:contain;border:1px solid var(--line)}
 .meta{min-width:0}
@@ -124,7 +128,7 @@ main.wrap{padding-block:18px 120px}
 .themes label:has(input:checked){border-color:var(--ink);background:var(--sel)}
 .themes .sw{width:20px;height:20px;border-radius:50%;border:1px solid var(--line)}
 .preview{display:flex;flex-direction:column;gap:16px;min-width:0}
-.cardimg{width:100%;max-width:640px;aspect-ratio:85/55;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.12),0 12px 32px rgba(10,30,25,.16);background:var(--card);display:block}
+.cardimg{width:100%;max-width:640px;aspect-ratio:85/55;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.12),0 12px 32px rgba(0,0,0,.14);background:var(--card);display:block}
 .note{font-size:13px;color:var(--muted);max-width:62ch}
 .linkbox{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .linkbox code{flex:1 1 260px;min-width:0;overflow-wrap:anywhere;font-size:12.5px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;user-select:all}
@@ -153,9 +157,9 @@ textarea{min-height:140px;font-size:12.5px;font-family:ui-monospace,SFMono-Regul
 /* public view */
 .pub .mast .wrap{padding-block:34px 28px;flex-direction:column;align-items:flex-start;gap:6px}
 .pub .mast h1{font-size:clamp(30px,6vw,46px)}
-.pub .contact{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px;color:var(--band-fg);font-size:15px}
+.pub .contact{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px;color:var(--ink);font-size:15px}
 .pub .contact span{user-select:all}
-.pub .contact .wa{color:var(--band);background:var(--band-fg);border-radius:999px;padding:2px 12px;font-weight:600;text-decoration:none}
+.pub .contact .wa{color:var(--band-fg);background:var(--band);border-radius:999px;padding:2px 12px;font-weight:600;text-decoration:none}
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));gap:14px}
 @media (max-width:520px){.pgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
 .pcard{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
@@ -366,12 +370,12 @@ const myPriceTxt = (p, map) => map && map[p.id] != null ? eur(map[p.id] / 100) :
 function parseEuro(v) { const t = String(v).replace(/\s|€/g, "").replace(",", "."); if (!t) return null; const n = Number(t); return isFinite(n) && n >= 0 && n < 100000 ? Math.round(n * 100) : NaN; }
 const filt = {q: "", r: "all", onlySel: false, hideOut: false};
 const THEMES = {
-  vert: {label: "Vert & or", bg: "#15302b", fg: "#f3eee2", sub: "#b9c7c0", acc: "#d9a441"},
-  sable: {label: "Sable", bg: "#efe6d3", fg: "#1c2b27", sub: "#5c645c", acc: "#94600f"},
-  blanc: {label: "Blanc", bg: "#ffffff", fg: "#15302b", sub: "#5a6a63", acc: "#a8680f"},
-  nuit: {label: "Nuit", bg: "#141821", fg: "#f1eee6", sub: "#a4a9b6", acc: "#d6b26a"}
+  creme: {label: "Blanc cassé & or", bg: "#fffcf5", fg: "#141414", sub: "#6b6457", acc: "#8a6d43"},
+  noir: {label: "Noir & or", bg: "#111111", fg: "#fffcf5", sub: "#c9bfa9", acc: "#e3c996"},
+  dore: {label: "Doré clair", bg: "#f1e2bf", fg: "#141414", sub: "#5f5644", acc: "#7b663a"},
+  blanc: {label: "Blanc", bg: "#ffffff", fg: "#141414", sub: "#6b6457", acc: "#8a6d43"}
 };
-const form = Object.assign({name: "", tag: "", phone: "", addr: "", web: "", theme: "vert", prices: false, base: ""}, store.get("form", {}));
+const form = Object.assign({name: "", tag: "", phone: "", addr: "", web: "", theme: "creme", prices: false, base: ""}, store.get("form", {}));
 
 /* ---------- vue sélection ---------- */
 const rows = [], groups = [], sections = [];
@@ -553,7 +557,7 @@ function roundRect(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); 
 
 let fontsReady = null;
 function loadFonts() {
-  if (!fontsReady) fontsReady = Promise.all(['600 60px "Reem Kufi"', '500 26px "Instrument Sans"', '700 30px "Instrument Sans"', '400 22px "Instrument Sans"']
+  if (!fontsReady) fontsReady = Promise.all(['600 60px "Raleway"', '500 26px "Raleway"', '700 30px "Raleway"', '400 22px "Raleway"']
     .map(f => document.fonts ? document.fonts.load(f).catch(() => {}) : null)).catch(() => {});
   return fontsReady;
 }
@@ -562,10 +566,10 @@ async function renderCard() {
   const link = pageLink();
   $("#no-sel").hidden = sel.size > 0;
   $("#link").textContent = link || "Choisissez des produits pour générer le lien.";
-  const W = 1020, H = 660, pad = 58, t = THEMES[form.theme] || THEMES.vert;
+  const W = 1020, H = 660, pad = 58, t = THEMES[form.theme] || THEMES.creme;
   const cv = document.createElement("canvas"); cv.width = W; cv.height = H; const ctx = cv.getContext("2d");
   ctx.fillStyle = t.bg; ctx.fillRect(0, 0, W, H);
-  if (t.bg === "#ffffff") { ctx.strokeStyle = "#dfe3dc"; ctx.lineWidth = 2; ctx.strokeRect(1, 1, W - 2, H - 2); }
+  if (t.bg === "#ffffff" || t.bg === "#fffcf5") { ctx.strokeStyle = "#e3c996"; ctx.lineWidth = 2; ctx.strokeRect(1, 1, W - 2, H - 2); }
   // motif discret : grande étoile à 8 branches qui déborde en bas à droite
   ctx.globalAlpha = .09; drawStar(ctx, W - 120, H + 10, 190, t.acc, 3); drawStar(ctx, W - 120, H + 10, 140, t.acc, 2); ctx.globalAlpha = 1;
   const qrS = 290, qx = W - pad - qrS, qy = 70;
@@ -575,8 +579,8 @@ async function renderCard() {
   const name = form.name.trim();
   let y = pad + 46;
   if (name) {
-  let fs = 64; ctx.font = `600 ${fs}px "Reem Kufi", "Trebuchet MS", sans-serif`;
-  while (ctx.measureText(name).width > textW && fs > 34) { fs -= 2; ctx.font = `600 ${fs}px "Reem Kufi", "Trebuchet MS", sans-serif`; }
+  let fs = 64; ctx.font = `600 ${fs}px "Raleway", "Trebuchet MS", sans-serif`;
+  while (ctx.measureText(name).width > textW && fs > 34) { fs -= 2; ctx.font = `600 ${fs}px "Raleway", "Trebuchet MS", sans-serif`; }
   ctx.fillStyle = t.fg; ctx.textBaseline = "alphabetic";
   const nameLines = ctx.measureText(name).width > textW ? wrapLines(ctx, name, textW, 2) : [name];
   y += fs * 0.95;
@@ -585,7 +589,7 @@ async function renderCard() {
   // accroche ou rayons
   const ray = RAY.map(r => [r.name, LIVE.filter(p => p.r === r.k && sel.has(p.i)).length]).filter(x => x[1]).sort((a, b) => b[1] - a[1]).map(x => x[0]);
   const tag = form.tag.trim() || ray.join(" · ") || "Livres, musc & produits naturels";
-  ctx.font = '500 27px "Instrument Sans", system-ui, sans-serif'; ctx.fillStyle = t.acc;
+  ctx.font = '500 27px "Raleway", system-ui, sans-serif'; ctx.fillStyle = t.acc;
   const tagLines = wrapLines(ctx, tag, textW, name ? 3 : 4);
   tagLines.forEach((l, k) => ctx.fillText(l, pad, y + k * 36));
   // coordonnées en bas
@@ -595,22 +599,22 @@ async function renderCard() {
   if (form.web.trim()) contact.push(["500 23px", form.web.trim(), t.sub]);
   let cy = H - pad;
   for (const [f, txt, col] of contact.reverse()) {
-    ctx.font = `${f} "Instrument Sans", system-ui, sans-serif`; ctx.fillStyle = col;
+    ctx.font = `${f} "Raleway", system-ui, sans-serif`; ctx.fillStyle = col;
     const lines = wrapLines(ctx, txt, textW, 2).reverse();
     for (const l of lines) { ctx.fillText(l, pad, cy); cy -= f.startsWith("700") ? 44 : 33; }
   }
   // QR
   ctx.save(); roundRect(ctx, qx - 8, qy - 8, qrS + 16, qrS + 16, 18); ctx.fillStyle = "#ffffff"; ctx.fill(); ctx.restore();
-  if (link) drawQR(ctx, link, qx, qy, qrS, "#13201d");
-  else { ctx.fillStyle = "#e9ece8"; ctx.fillRect(qx, qy, qrS, qrS); ctx.fillStyle = "#6b7570"; ctx.font = '500 22px "Instrument Sans", sans-serif'; ctx.textAlign = "center"; ctx.fillText("QR code", qx + qrS / 2, qy + qrS / 2 + 8); ctx.textAlign = "left"; }
-  ctx.textAlign = "center"; ctx.fillStyle = t.fg; ctx.font = '700 23px "Instrument Sans", system-ui, sans-serif';
+  if (link) drawQR(ctx, link, qx, qy, qrS, "#111111");
+  else { ctx.fillStyle = "#e9ece8"; ctx.fillRect(qx, qy, qrS, qrS); ctx.fillStyle = "#6b7570"; ctx.font = '500 22px "Raleway", sans-serif'; ctx.textAlign = "center"; ctx.fillText("QR code", qx + qrS / 2, qy + qrS / 2 + 8); ctx.textAlign = "left"; }
+  ctx.textAlign = "center"; ctx.fillStyle = t.fg; ctx.font = '700 23px "Raleway", system-ui, sans-serif';
   ctx.fillText("Scannez pour voir", qx + qrS / 2, qy + qrS + 52);
-  ctx.fillStyle = t.sub; ctx.font = '400 21px "Instrument Sans", system-ui, sans-serif';
+  ctx.fillStyle = t.sub; ctx.font = '400 21px "Raleway", system-ui, sans-serif';
   ctx.fillText(sel.size ? `nos ${sel.size} produits` : "nos produits", qx + qrS / 2, qy + qrS + 80);
   ctx.textAlign = "left";
   $("#card-img").src = cv.toDataURL("image/png");
   // QR seul
-  if (link) { const c2 = document.createElement("canvas"); c2.width = c2.height = 720; drawQR(c2.getContext("2d"), link, 0, 0, 720, "#13201d"); $("#qr-img").src = c2.toDataURL("image/png"); }
+  if (link) { const c2 = document.createElement("canvas"); c2.width = c2.height = 720; drawQR(c2.getContext("2d"), link, 0, 0, 720, "#111111"); $("#qr-img").src = c2.toDataURL("image/png"); }
 }
 function listText() {
   const out = [`${form.name.trim() || "Ma sélection"} — ${sel.size} produits (catalogue Qayyim)`, ""];
