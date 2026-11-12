@@ -102,6 +102,7 @@ main.wrap{padding-block:18px 120px}
 .promo{background:var(--accent-soft);color:var(--accent);font-weight:600;border-radius:999px;padding:0 7px}
 .was{color:var(--muted);font-weight:400;font-size:12px}
 .vp{color:var(--ink)}
+.item .pr{white-space:normal;max-width:8.5em}
 .sort{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 12px;font-size:14px;cursor:pointer}
 .pr{font-variant-numeric:tabular-nums;font-weight:600;font-size:14px;text-align:right;white-space:nowrap}
 .pr small{display:block;font-weight:400;color:var(--muted);font-size:11px}
@@ -318,7 +319,7 @@ const LIVE = P.filter(p => !p.gone);
 const RNAME = Object.fromEntries(RAY.map(r => [r.k, r.name]));
 const norm = s => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const eur = n => n.toLocaleString("fr-FR", {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " €";
+const eur = n => n.toLocaleString("fr-FR", {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " €";
 const priceTxt = p => p.price == null ? "" : (p.priceMax && p.priceMax !== p.price ? "de " + eur(p.price) + " à " + eur(p.priceMax) : eur(p.price));
 /* prix de chaque variante, quand ils diffèrent (ex. « Taille : 14x10 10,90 € · 18x14 14,90 € ») */
 const varTxt = p => p.vp ? (p.vp.n ? p.vp.n + " : " : "") + p.vp.l.map(v => v.v + " " + eur(v.p)).join(" · ") : "";
