@@ -154,6 +154,7 @@ textarea{min-height:140px;font-size:12.5px;font-family:ui-monospace,SFMono-Regul
 .pub .mast h1{font-size:clamp(30px,6vw,46px)}
 .pub .contact{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px;color:var(--band-fg);font-size:15px}
 .pub .contact span{user-select:all}
+.pub .contact .wa{color:var(--band);background:var(--band-fg);border-radius:999px;padding:2px 12px;font-weight:600;text-decoration:none}
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));gap:14px}
 @media (max-width:520px){.pgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
 .pcard{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
@@ -243,7 +244,7 @@ textarea{min-height:140px;font-size:12.5px;font-family:ui-monospace,SFMono-Regul
         <p class="note">Format carte de visite 85 × 55 mm, image haute définition. Pour l'enregistrer : clic droit ou appui long sur l'image, puis « Enregistrer l'image ».</p>
         <div>
           <div style="font-weight:600;font-size:13.5px;margin-bottom:6px">Lien du QR code</div>
-          <div class="linkbox"><code id="link"></code><button type="button" class="btn small" id="copy-link">Copier le lien</button><button type="button" class="btn small primary" id="open-public">Voir la page client</button></div>
+          <div class="linkbox"><code id="link"></code><button type="button" class="btn small" id="copy-link">Copier le lien</button><button type="button" class="btn small" id="wa-link">Envoyer par WhatsApp</button><button type="button" class="btn small primary" id="open-public">Voir la page client</button></div>
         </div>
         <details>
           <summary>QR code seul (pour une affiche, un sticker…)</summary>
@@ -668,7 +669,9 @@ function showPublic(o) {
   $("#p-count").textContent = `${o.sel.size} produits disponibles`;
   const rs = RAY.filter(r => LIVE.some(p => p.r === r.k && o.sel.has(p.i)));
   $("#p-tag").textContent = rs.map(r => r.name).join(" · ");
-  $("#p-contact").innerHTML = o.phone ? `<span>☎ ${esc(o.phone)}</span>` : "";
+  /* numéro au format international pour WhatsApp : 06 12 34 56 78 -> 33612345678 */
+  const d = (o.phone || "").replace(/\D/g, ""), wa = /^0\d{9}$/.test(d) ? "33" + d.slice(1) : d.replace(/^00/, "");
+  $("#p-contact").innerHTML = o.phone ? `<span>☎ ${esc(o.phone)}</span>` + (wa.length >= 9 ? `<a class="wa" href="https://wa.me/${wa}" target="_blank" rel="noopener">Nous écrire sur WhatsApp</a>` : "") : "";
   pf.q = ""; pf.r = "all"; $("#pq").value = "";
   renderPublic();
 }
@@ -738,6 +741,12 @@ $("#clear").addEventListener("click", () => {
   b.dataset.confirm = "1"; b.textContent = "Confirmer ?"; setTimeout(() => { b.textContent = "Tout décocher"; delete b.dataset.confirm; }, 3000);
 });
 $("#copy-link").addEventListener("click", () => { const l = pageLink(); if (l) copy(l, $("#link"), "Lien copié"); });
+/* ouvre WhatsApp avec le lien déjà écrit dans le message ; il reste à choisir le destinataire */
+$("#wa-link").addEventListener("click", () => {
+  const l = pageLink(); if (!l) { toast("Choisissez d'abord des produits"); return; }
+  const txt = (form.name.trim() ? form.name.trim() + " : " : "") + (sel.size > 1 ? `voici notre sélection de ${sel.size} produits` : "voici le produit demandé") + "\n" + l;
+  window.open("https://wa.me/?text=" + encodeURIComponent(txt), "_blank", "noopener");
+});
 $("#open-public").addEventListener("click", () => { const c = buildCode(); if (c) location.hash = c; });
 $("#copy-list").addEventListener("click", () => { if (sel.size) copy(listText(), $("#list-text"), "Liste copiée"); });
 window.addEventListener("hashchange", route);
