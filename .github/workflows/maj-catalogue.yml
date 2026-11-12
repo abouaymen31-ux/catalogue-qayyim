@@ -1,0 +1,60 @@
+# Met à jour le catalogue depuis qayyim.fr puis publie la page.
+# Se lance tout seul chaque nuit, à chaque modification du projet,
+# ou à la main : onglet Actions > « Mise à jour du catalogue » > Run workflow.
+name: Mise à jour du catalogue
+
+on:
+  schedule:
+    - cron: "15 3 * * *"   # chaque nuit à 3 h 15 UTC (4 h 15 ou 5 h 15 en France)
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: catalogue
+  cancel-in-progress: false
+
+jobs:
+  catalogue:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Installer l'outil de traitement d'images
+        run: pip install pillow
+
+      - name: Récupérer les produits sur qayyim.fr
+        run: python docs/scripts/build_catalogue.py
+
+      - name: Enregistrer les changements
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs
+          if git diff --cached --quiet; then
+            echo "Aucun changement sur le site depuis la dernière mise à jour."
+          else
+            git commit -m "Mise à jour automatique du catalogue"
+            git push
+          fi
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: docs
+
+      - id: deploy
+        uses: actions/deploy-pages@v5

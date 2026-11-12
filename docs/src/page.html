@@ -92,6 +92,11 @@ main.wrap{padding-block:18px 120px}
 .meta a{color:var(--muted);text-decoration:none;border-bottom:1px dotted var(--muted)}
 .meta a:hover{color:var(--ink)}
 .out{color:var(--warn);font-weight:600}
+.low{color:var(--accent);font-weight:600}
+.promo{background:var(--accent-soft);color:var(--accent);font-weight:600;border-radius:999px;padding:0 7px}
+.was{color:var(--muted);font-weight:400;font-size:12px}
+.vp{color:var(--ink)}
+.sort{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 12px;font-size:14px;cursor:pointer}
 .pr{font-variant-numeric:tabular-nums;font-weight:600;font-size:14px;text-align:right;white-space:nowrap}
 .pr small{display:block;font-weight:400;color:var(--muted);font-size:11px}
 .empty{padding:40px 0;text-align:center;color:var(--muted)}
@@ -178,7 +183,7 @@ textarea{min-height:140px;font-size:12.5px;font-family:ui-monospace,SFMono-Regul
   <header class="mast">
     <div class="wrap">
       <div>
-        <div class="eyebrow"><svg class="star"><use href="#khatam"/></svg>Catalogue Qayyim · <span id="total-n"></span> produits</div>
+        <div class="eyebrow"><svg class="star"><use href="#khatam"/></svg>Catalogue Qayyim · <span id="total-n"></span> produits<span id="maj"></span></div>
         <h1>Choisissez les produits que vous vendez</h1>
         <p>Cochez les articles de votre boutique. La carte de visite et son QR code se créent à partir de votre sélection.</p>
       </div>
@@ -197,6 +202,12 @@ textarea{min-height:140px;font-size:12.5px;font-family:ui-monospace,SFMono-Regul
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
             <input id="q" type="search" placeholder="Rechercher : musc, coran, tasbih, miel…" aria-label="Rechercher un produit" autocomplete="off">
           </div>
+          <select class="sort" id="sort" aria-label="Trier les produits">
+            <option value="nom">Trier : de A à Z</option>
+            <option value="prix">Prix croissant</option>
+            <option value="prix-desc">Prix décroissant</option>
+            <option value="nouveau">Nouveautés d'abord</option>
+          </select>
           <label class="tog"><input type="checkbox" id="only-sel"> Ma sélection seulement</label>
           <label class="tog"><input type="checkbox" id="hide-out"> Masquer les ruptures</label>
         </div>
@@ -288,20 +299,26 @@ textarea{min-height:140px;font-size:12.5px;font-family:ui-monospace,SFMono-Regul
 <script>
 const DATA = /*__DATA__*/null;
 /* Lien public de la page (rempli après publication). Si la page est hébergée ailleurs, son adresse est utilisée automatiquement. */
-const BASE_URL = "https://sacharm7.github.io/cfff/";
+const BASE_URL = "https://abouaymen31-ux.github.io/catalogue-qayyim/";
 
 const $ = s => document.querySelector(s);
 const P = DATA.products, RAY = DATA.rayons;
+/* LIVE : produits encore sur le site. P garde aussi les produits retirés, pour que les positions (QR codes) ne bougent pas. */
+const LIVE = P.filter(p => !p.gone);
 const RNAME = Object.fromEntries(RAY.map(r => [r.k, r.name]));
 const norm = s => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const eur = n => n.toLocaleString("fr-FR", {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " €";
-const priceTxt = p => p.price == null ? "" : (p.priceMax && p.priceMax !== p.price ? "dès " + eur(p.price) : eur(p.price));
+const priceTxt = p => p.price == null ? "" : (p.priceMax && p.priceMax !== p.price ? "de " + eur(p.price) + " à " + eur(p.priceMax) : eur(p.price));
+/* prix de chaque variante, quand ils diffèrent (ex. « Taille : 14x10 10,90 € · 18x14 14,90 € ») */
+const varTxt = p => p.vp ? (p.vp.n ? p.vp.n + " : " : "") + p.vp.l.map(v => v.v + " " + eur(v.p)).join(" · ") : "";
+const wasTxt = p => p.was ? `<s class="was">${eur(p.was)}</s> ` : "";
 const optsTxt = p => p.opts.map(o => (o.n === "Couleur" && o.v.length > 3 ? o.v.length + " couleurs" : o.n + " : " + o.v.join(", "))).join(" · ");
 P.forEach((p, i) => { p.i = i; p.key = norm([p.name, p.s, RNAME[p.r], p.opts.map(o => o.v.join(" ")).join(" "), p.siteCats.join(" ")].join(" ")); });
 const subOrder = {}; RAY.forEach(r => r.subs.forEach((s, j) => subOrder[r.k + "|" + s] = j));
 const sorted = (arr) => arr.slice().sort((a, b) => a.name.localeCompare(b.name, "fr", {sensitivity: "base"}));
-$("#total-n").textContent = P.length;
+$("#total-n").textContent = LIVE.length;
+if (DATA.updated) { const d = new Date(DATA.updated); if (!isNaN(d)) $("#maj").textContent = " · mis à jour le " + d.toLocaleDateString("fr-FR", {day: "numeric", month: "long", year: "numeric"}); }
 
 /* ---------- stockage local (confort uniquement) ---------- */
 const store = {
@@ -313,7 +330,7 @@ const store = {
 function encodeSel(set) { let b = 0n; for (const i of set) b |= 1n << BigInt(i); return b.toString(36); }
 function decodeSel(s) {
   let b = 0n; for (const ch of s) b = b * 36n + BigInt(parseInt(ch, 36));
-  const out = new Set(); for (let i = 0; i < P.length; i++) if ((b >> BigInt(i)) & 1n) out.add(i); return out;
+  const out = new Set(); for (let i = 0; i < P.length; i++) if (((b >> BigInt(i)) & 1n) && !P[i].gone) out.add(i); return out;
 }
 const toHex = s => Array.from(new TextEncoder().encode(s), x => x.toString(16).padStart(2, "0")).join("");
 const fromHex = h => { try { return new TextDecoder().decode(new Uint8Array(h.match(/../g).map(x => parseInt(x, 16)))); } catch (e) { return ""; } };
@@ -339,7 +356,7 @@ function parseCode(h) {
 }
 
 /* ---------- état ---------- */
-let sel = new Set(store.get("sel", []).filter(i => i < P.length));
+let sel = new Set(store.get("sel", []).filter(i => i < P.length && !P[i].gone));
 /* prix modifiés : {identifiant produit: centimes} */
 let custom = store.get("prices", {});
 const myPrice = (p, map) => map && map[p.id] != null ? map[p.id] / 100 : p.price;
@@ -360,11 +377,11 @@ function buildList() {
   const root = $("#list"); root.innerHTML = "";
   for (const r of RAY) {
     const sec = document.createElement("section"); sec.className = "rayon"; sec.dataset.r = r.k;
-    const total = P.filter(p => p.r === r.k).length;
+    const total = LIVE.filter(p => p.r === r.k).length;
     sec.innerHTML = `<div class="rhead"><h2>${esc(r.name)}</h2><span class="count"></span><button type="button" class="btn small" data-act="all-r">Tout le rayon</button></div>`;
     const secObj = {el: sec, r: r.k, total, subs: []};
     for (const s of r.subs) {
-      const items = sorted(P.filter(p => p.r === r.k && p.s === s)); if (!items.length) continue;
+      const items = sorted(LIVE.filter(p => p.r === r.k && p.s === s)); if (!items.length) continue;
       const sub = document.createElement("div"); sub.className = "sub";
       sub.innerHTML = `<div class="shead"><h3>${esc(s)}</h3><span class="count"></span><span class="rule"></span><button type="button" class="btn small ghost" data-act="all-s">Tout cocher</button></div><div class="grid"></div>`;
       const grid = sub.querySelector(".grid");
@@ -374,16 +391,17 @@ function buildList() {
         const ot = optsTxt(p);
         lab.innerHTML = `<input type="checkbox" value="${p.i}" aria-label="${esc(p.name)}">` +
           (p.img ? `<img class="thumb" loading="lazy" src="${p.img}" alt="">` : `<span class="thumb"></span>`) +
-          `<span class="meta"><span class="nm">${esc(p.name)}</span>${ot ? `<div class="op">${esc(ot)}</div>` : ""}` +
-          `<span class="tags">${p.stock ? "" : `<span class="out">Rupture sur le site</span>`}<a href="${esc(p.url)}" target="_blank" rel="noopener">Fiche ↗</a></span></span>` +
+          `<span class="meta"><span class="nm">${esc(p.name)}</span>${ot ? `<div class="op">${esc(ot)}</div>` : ""}${p.vp ? `<div class="op vp">${esc(varTxt(p))}</div>` : ""}` +
+          `<span class="tags">${p.stock ? (p.low ? `<span class="low">Plus que ${p.low} sur le site</span>` : "") : `<span class="out">Rupture sur le site</span>`}${p.was ? `<span class="promo">Promotion</span>` : ""}${p.sku ? `<span>Réf. ${esc(p.sku)}</span>` : ""}<a href="${esc(p.url)}" target="_blank" rel="noopener">Fiche ↗</a></span></span>` +
           `<span class="pr"></span>`;
         grid.appendChild(lab);
         rows.push({el: lab, p, cb: lab.querySelector("input"), pr: lab.querySelector(".pr")});
       }
+      g.grid = grid;
       g.btn.addEventListener("click", () => toggleMany(visibleIn(g.items)));
       sec.appendChild(sub); secObj.subs.push(g); groups.push(g);
     }
-    sec.querySelector("[data-act=all-r]").addEventListener("click", () => toggleMany(visibleIn(P.filter(p => p.r === r.k))));
+    sec.querySelector("[data-act=all-r]").addEventListener("click", () => toggleMany(visibleIn(LIVE.filter(p => p.r === r.k))));
     secObj.count = sec.querySelector(".rhead .count"); secObj.btn = sec.querySelector("[data-act=all-r]");
     root.appendChild(sec); sections.push(secObj);
   }
@@ -393,6 +411,17 @@ function buildList() {
   root.addEventListener("change", e => {
     if (e.target.matches("input[type=checkbox]")) { const i = +e.target.value; e.target.checked ? sel.add(i) : sel.delete(i); update(); }
   });
+}
+/* tri à l'intérieur de chaque sous-catégorie ; les produits sans prix vont à la fin */
+const SORTS = {
+  nom: (a, b) => a.name.localeCompare(b.name, "fr", {sensitivity: "base"}),
+  prix: (a, b) => (a.price == null) - (b.price == null) || a.price - b.price || SORTS.nom(a, b),
+  "prix-desc": (a, b) => (a.price == null) - (b.price == null) || b.price - a.price || SORTS.nom(a, b),
+  nouveau: (a, b) => b.id - a.id
+};
+function applySort(k) {
+  const cmp = SORTS[k] || SORTS.nom, el = new Map(rows.map(r => [r.p.i, r.el]));
+  for (const g of groups) g.items.slice().sort(cmp).forEach(p => g.grid.appendChild(el.get(p.i)));
 }
 const matches = p => (!filt.q || filt.q.split(/\s+/).every(w => p.key.includes(w))) && (filt.r === "all" || p.r === filt.r) &&
   (!filt.hideOut || p.stock) && (!filt.onlySel || sel.has(p.i));
@@ -421,7 +450,7 @@ function updateButtons() {
     g.count.textContent = g.items.filter(p => sel.has(p.i)).length + " / " + g.items.length;
   }
   for (const s of sections) {
-    const all = P.filter(p => p.r === s.r), vis = visibleIn(all), n = all.filter(p => sel.has(p.i)).length;
+    const all = LIVE.filter(p => p.r === s.r), vis = visibleIn(all), n = all.filter(p => sel.has(p.i)).length;
     s.count.textContent = n ? `${n} choisi${n > 1 ? "s" : ""} sur ${s.total}` : `${s.total} produits`;
     s.btn.textContent = vis.length && vis.every(p => sel.has(p.i)) ? "Décocher le rayon" : "Tout le rayon";
   }
@@ -451,15 +480,15 @@ function edgeHints(root) {
 document.querySelectorAll(".chips").forEach(c => c.addEventListener("scroll", () => edgeHints(c), {passive: true}));
 window.addEventListener("resize", () => document.querySelectorAll(".chips").forEach(edgeHints));
 function renderChips() {
-  const counts = {all: sel.size ? `${sel.size}/${P.length}` : P.length, dot: {}};
-  RAY.forEach(r => { const t = P.filter(p => p.r === r.k).length, n = P.filter(p => p.r === r.k && sel.has(p.i)).length; counts[r.k] = n ? `${n}/${t}` : t; counts.dot[r.k] = n > 0; });
+  const counts = {all: sel.size ? `${sel.size}/${LIVE.length}` : LIVE.length, dot: {}};
+  RAY.forEach(r => { const t = LIVE.filter(p => p.r === r.k).length, n = LIVE.filter(p => p.r === r.k && sel.has(p.i)).length; counts[r.k] = n ? `${n}/${t}` : t; counts.dot[r.k] = n > 0; });
   buildChips($("#chips"), RAY, counts, k => { filt.r = k; renderChips(); applyFilters(); window.scrollTo({top: 0}); }, filt.r);
 }
 function paintRows() {
   for (const row of rows) {
     row.cb.checked = sel.has(row.p.i);
     const own = custom[row.p.id] != null;
-    row.pr.innerHTML = `${myPriceTxt(row.p, custom) || "—"}<small>${own ? "votre prix" : "prix du site"}</small>`;
+    row.pr.innerHTML = `${own ? "" : wasTxt(row.p)}${myPriceTxt(row.p, custom) || "—"}<small>${own ? "votre prix" : "prix du site"}</small>`;
   }
 }
 function update() {
@@ -467,7 +496,7 @@ function update() {
   paintRows();
   renderChips(); updateButtons();
   $("#dock-n").textContent = sel.size;
-  const by = RAY.map(r => [r.name, P.filter(p => p.r === r.k && sel.has(p.i)).length]).filter(x => x[1]);
+  const by = RAY.map(r => [r.name, LIVE.filter(p => p.r === r.k && sel.has(p.i)).length]).filter(x => x[1]);
   $("#dock-mini").textContent = by.map(x => `${x[0]} ${x[1]}`).join(" · ");
   if (!$("#view-card").hidden) { renderCard(); renderSummary(); }
 }
@@ -552,7 +581,7 @@ async function renderCard() {
   nameLines.forEach((l, k) => ctx.fillText(l, pad, y + k * fs * 1.05)); y += (nameLines.length - 1) * fs * 1.05 + 48;
   } else y += 40;
   // accroche ou rayons
-  const ray = RAY.map(r => [r.name, P.filter(p => p.r === r.k && sel.has(p.i)).length]).filter(x => x[1]).sort((a, b) => b[1] - a[1]).map(x => x[0]);
+  const ray = RAY.map(r => [r.name, LIVE.filter(p => p.r === r.k && sel.has(p.i)).length]).filter(x => x[1]).sort((a, b) => b[1] - a[1]).map(x => x[0]);
   const tag = form.tag.trim() || ray.join(" · ") || "Livres, musc & produits naturels";
   ctx.font = '500 27px "Instrument Sans", system-ui, sans-serif'; ctx.fillStyle = t.acc;
   const tagLines = wrapLines(ctx, tag, textW, name ? 3 : 4);
@@ -584,7 +613,7 @@ async function renderCard() {
 function listText() {
   const out = [`${form.name.trim() || "Ma sélection"} — ${sel.size} produits (catalogue Qayyim)`, ""];
   for (const r of RAY) {
-    const items = P.filter(p => p.r === r.k && sel.has(p.i)); if (!items.length) continue;
+    const items = LIVE.filter(p => p.r === r.k && sel.has(p.i)); if (!items.length) continue;
     out.push(r.name.toUpperCase());
     for (const s of r.subs) {
       const it = sorted(items.filter(p => p.s === s)); if (!it.length) continue;
@@ -599,7 +628,7 @@ function renderSummary() {
   $("#sum-title").textContent = sel.size ? `Vos produits et vos prix · ${sel.size}` : "Vos produits et vos prix";
   let h = "";
   for (const r of RAY) {
-    const items = P.filter(p => p.r === r.k && sel.has(p.i))
+    const items = LIVE.filter(p => p.r === r.k && sel.has(p.i))
       .sort((a, b) => (subOrder[a.r + "|" + a.s] - subOrder[b.r + "|" + b.s]) || a.name.localeCompare(b.name, "fr", {sensitivity: "base"}));
     if (!items.length) continue;
     h += `<tr><th colspan="3">${esc(r.name)}<span>${items.length}</span></th></tr>` + items.map(p => {
@@ -637,26 +666,26 @@ function showPublic(o) {
   document.title = (o.name || "Nos produits") + " · Catalogue";
   $("#p-name").textContent = o.name || "Nos produits";
   $("#p-count").textContent = `${o.sel.size} produits disponibles`;
-  const rs = RAY.filter(r => P.some(p => p.r === r.k && o.sel.has(p.i)));
+  const rs = RAY.filter(r => LIVE.some(p => p.r === r.k && o.sel.has(p.i)));
   $("#p-tag").textContent = rs.map(r => r.name).join(" · ");
   $("#p-contact").innerHTML = o.phone ? `<span>☎ ${esc(o.phone)}</span>` : "";
   pf.q = ""; pf.r = "all"; $("#pq").value = "";
   renderPublic();
 }
 function renderPublic() {
-  const o = pubState, rs = RAY.filter(r => P.some(p => p.r === r.k && o.sel.has(p.i)));
-  const counts = {all: o.sel.size}; rs.forEach(r => counts[r.k] = P.filter(p => p.r === r.k && o.sel.has(p.i)).length);
+  const o = pubState, rs = RAY.filter(r => LIVE.some(p => p.r === r.k && o.sel.has(p.i)));
+  const counts = {all: o.sel.size}; rs.forEach(r => counts[r.k] = LIVE.filter(p => p.r === r.k && o.sel.has(p.i)).length);
   buildChips($("#pchips"), rs, counts, k => { pf.r = k; renderPublic(); }, pf.r);
   $("#pchips").hidden = rs.length < 2;
   const q = norm(pf.q.trim());
   let h = "";
   for (const r of rs) {
     if (pf.r !== "all" && pf.r !== r.k) continue;
-    const items = P.filter(p => p.r === r.k && o.sel.has(p.i) && (!q || q.split(/\s+/).every(w => p.key.includes(w))))
+    const items = LIVE.filter(p => p.r === r.k && o.sel.has(p.i) && (!q || q.split(/\s+/).every(w => p.key.includes(w))))
       .sort((a, b) => (subOrder[a.r + "|" + a.s] - subOrder[b.r + "|" + b.s]) || a.name.localeCompare(b.name, "fr", {sensitivity: "base"}));
     if (!items.length) continue;
     h += `<section class="rayon"><div class="rhead"><h2>${esc(r.name)}</h2><span class="count">${items.length}</span></div><div class="pgrid" style="margin-top:12px">` +
-      items.map(p => { const ot = optsTxt(p); return `<article class="pcard">${p.img ? `<img loading="lazy" src="${p.img}" alt="">` : ""}<div class="b"><span class="op">${esc(p.s)}</span><span class="nm">${esc(p.name)}</span>${ot ? `<span class="op">${esc(ot)}</span>` : ""}${o.prices && myPrice(p, o.custom) != null ? `<span class="pr">${myPriceTxt(p, o.custom)}</span>` : ""}</div></article>`; }).join("") +
+      items.map(p => { const ot = optsTxt(p); return `<article class="pcard">${p.img ? `<img loading="lazy" src="${p.img}" alt="">` : ""}<div class="b"><span class="op">${esc(p.s)}</span><span class="nm">${esc(p.name)}</span>${ot ? `<span class="op">${esc(ot)}</span>` : ""}${o.prices && p.vp && o.custom[p.id] == null ? `<span class="op vp">${esc(varTxt(p))}</span>` : ""}${o.prices && myPrice(p, o.custom) != null ? `<span class="pr">${o.custom[p.id] == null ? wasTxt(p) : ""}${myPriceTxt(p, o.custom)}</span>` : ""}</div></article>`; }).join("") +
       `</div></section>`;
   }
   $("#plist").innerHTML = h || `<p class="empty">Aucun produit ne correspond à « ${esc(pf.q)} ».</p>`;
@@ -694,6 +723,9 @@ async function copy(text, fallbackEl, okMsg) {
 
 buildList(); buildForm();
 $("#q").addEventListener("input", e => { filt.q = norm(e.target.value.trim()); applyFilters(); });
+$("#sort").value = SORTS[store.get("sort", "nom")] ? store.get("sort", "nom") : "nom";
+if ($("#sort").value !== "nom") applySort($("#sort").value);
+$("#sort").addEventListener("change", e => { store.set("sort", e.target.value); applySort(e.target.value); });
 $("#only-sel").addEventListener("change", e => { filt.onlySel = e.target.checked; applyFilters(); });
 $("#hide-out").addEventListener("change", e => { filt.hideOut = e.target.checked; applyFilters(); });
 $("#tab-choose").addEventListener("click", () => setStep(false));
